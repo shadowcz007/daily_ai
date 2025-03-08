@@ -18,7 +18,7 @@ export default function Home() {
     setCheckInData(loadedCheckIns)
   }, [])
 
-  const handleCheckIn = (taskId) => {
+  const handleCheckIn = async (taskId) => {
     const newCheckIn = {
       taskId,
       date: new Date().toISOString(),
