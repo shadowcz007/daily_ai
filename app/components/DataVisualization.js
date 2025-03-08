@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { generateAIComment } from '../utils/ai'
 
 export default function DataVisualization({ tasks, checkInData }) {
   const [stats, setStats] = useState({
@@ -8,6 +9,7 @@ export default function DataVisualization({ tasks, checkInData }) {
     taskStats: [],
     weeklyProgress: Array(7).fill(0),
   })
+  const [aiComment, setAiComment] = useState('')
 
   useEffect(() => {
     // 计算总打卡次数
@@ -41,6 +43,11 @@ export default function DataVisualization({ tasks, checkInData }) {
     })
 
     setStats({ totalCheckIns, taskStats, weeklyProgress })
+
+    // 获取 AI 点评
+    generateAIComment(tasks, checkInData).then(comment => {
+      setAiComment(comment)
+    })
   }, [tasks, checkInData])
 
   return (
@@ -86,6 +93,14 @@ export default function DataVisualization({ tasks, checkInData }) {
             </div>
           ))}
         </div>
+      </div>
+
+      <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+        <h3 className="font-semibold mb-2 flex items-center">
+          <span>AI 点评</span>
+          <span className="ml-2 text-xs text-blue-500">由 DeepSeek-V3 提供</span>
+        </h3>
+        <p className="text-sm text-gray-700">{aiComment || '正在生成点评...'}</p>
       </div>
     </div>
   )
