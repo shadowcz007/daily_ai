@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 
 export default function TaskList({ tasks, onCheckIn }) {
   const [expandedTask, setExpandedTask] = useState(null)
@@ -27,6 +28,17 @@ export default function TaskList({ tasks, onCheckIn }) {
                 打卡
               </button>
             </div>
+            
+            {task.imageUrl && (
+              <div className="mt-3 relative h-40 bg-gray-50 rounded-lg overflow-hidden">
+                <Image 
+                  src={task.imageUrl}
+                  alt={task.title}
+                  fill
+                  style={{ objectFit: 'contain' }}
+                />
+              </div>
+            )}
             
             <div className="mt-2 text-sm text-gray-500">
               <span>频率: {task.frequency}</span>
