@@ -66,4 +66,104 @@ export async function generateAIComment(tasks, checkInData) {
     });
     return '暂时无法生成 AI 点评';
   }
+}
+
+// 新增用户意图判断方法
+export async function detectUserIntent(userInput) {
+  try {
+    // 构建请求体
+    const requestBody = {
+      model: "THUDM/glm-4-9b-chat",
+      messages: [
+        {
+          role: "system",
+          content: "根据用户的输入，判断用户的意图（image,chat,weather），只返回JSON格式的结果，其他不相关的不需要返回: { result:\"image或者chat\" }"
+        },
+        {
+          role: "user",
+          content: userInput
+        }
+      ],
+      temperature: 0.3,
+      max_tokens: 50
+    };
+    
+    const response = await fetch('https://api.siliconflow.cn/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_AI_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestBody)
+    });
+    
+    console.log('意图检测 API 响应状态:', response.status);
+    
+    const data = await response.json();
+    console.log('意图检测 API 响应数据:', data);
+    
+    // 提取 JSON 结果
+    const content = data.choices[0].message.content;
+    console.log('原始意图检测结果:', content);
+    
+    // 尝试解析 JSON
+    try {
+      // 查找 JSON 部分并解析
+      const jsonMatch = content.match(/\{.*\}/s);
+      if (jsonMatch) {
+        const jsonResult = JSON.parse(jsonMatch[0]);
+        console.log('解析后的意图结果:', jsonResult);
+        return jsonResult;
+      }
+      return { result: "unknown" };
+    } catch (parseError) {
+      console.error('JSON 解析错误:', parseError);
+      return { result: "unknown" };
+    }
+  } catch (error) {
+    console.error('意图检测失败:', {
+      error: error.message,
+      stack: error.stack
+    });
+    return { result: "unknown" };
+  }
+}
+
+// 添加图像生成方法
+export async function generateImage(prompt) {
+  try {
+    // 构建请求体
+    const requestBody = {
+      model: "Kwai-Kolors/Kolors",
+      prompt: prompt
+    };
+    
+    console.log('图像生成请求:', prompt);
+    
+    const response = await fetch('https://api.siliconflow.cn/v1/images/generations', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_AI_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestBody)
+    });
+    
+    console.log('图像生成 API 响应状态:', response.status);
+    
+    const data = await response.json();
+    console.log('图像生成 API 响应数据:', data);
+    
+    if (data.images && data.images.length > 0) {
+      return data.images[0].url;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('图像生成失败:', {
+      error: error.message,
+      stack: error.stack
+    });
+    return null;
+  }
 } 
